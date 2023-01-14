@@ -11,9 +11,13 @@
   <!-- Compiled og minified CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous" />
+  <!-- style.css -->
+  <link href="style.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
     crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.6/handlebars.min.js"></script>
+
 
   <!-- jQuery bibliotek -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -39,29 +43,37 @@
     </div>
   </div>
 
-  <table id="data" class="table table-success table-striped table-hover">
-    <thead>
-      <tr>
-        <th>Location</th>
-        <th>Temperature</th>
-        <th>Sky Text</th>
-        <th>Humidity</th>
-        <th>Wind Text</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Handlebars template for creating new table rows -->
+  <div id="data">
+    <div class="card-container">
+      <!-- Handlebars template for creating new cards -->
       <script id="template" type="text/x-handlebars-template">
-          <tr>
-            <td>{{locationName}}</td>
-            <td>{{currentData.temperature}}</td>
-            <td>{{currentData.skyText}}</td>
-            <td>{{currentData.humidity}}</td>
-            <td>{{currentData.windText}}</td>
-          </tr>
-        </script>
-    </tbody>
-  </table>
+        <div class="card">
+          <div class="card-header">{{locationName}}</div>
+          <div class="card-body">
+            <div class="card-data">
+              <div class="card-data-item">
+                <div class="card-data-label">Temperature:</div>
+                <div class="card-data-value">{{currentData.temperature}}</div>
+              </div>
+              <div class="card-data-item">
+                <div class="card-data-label">Sky Text:</div>
+                <div class="card-data-value">{{currentData.skyText}}</div>
+              </div>
+              <div class="card-data-item">
+                <div class="card-data-label">Humidity:</div>
+                <div class="card-data-value">{{currentData.humidity}}</div>
+              </div>
+              <div class="card-data-item">
+                <div class="card-data-label">Wind Text:</div>
+                <div class="card-data-value">{{currentData.windText}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </script>
+    </div>
+  </div>
+
 </body>
 
 </html>

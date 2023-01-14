@@ -1,37 +1,35 @@
 (function ($) {
-    document.addEventListener("DOMContentLoaded", () => {
-        // Other code here
-
-        document.querySelector("#data").addEventListener("submit", (e) => {
+    $(document).ready(function () {
+        $(document).ajaxError(function (event, jqxhr, settings, thrownError) {
+            // handle errors
+            console.log("Error Occured", thrownError);
+            alert("An error occurred, please try again later.");
+        });
+        $("#request").on("submit", function (e) {
             // Prevent the form from being submitted
             e.preventDefault();
             console.time("ajax-weather-call");
             // Serialize the form data and send it via an AJAX request
-            const data = new FormData(e.target);
-            fetch("getWeather.php", { method: "GET", body: data })
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error(response.statusText);
-                    }
-                    return response.json();
-                })
-                .then((response) => {
+            var data = $(this).serialize();
+            $.ajax({
+                url: "getWeather.php?" + data,
+                type: "GET",
+                dataType: "json",
+                success: function (response) {
                     // Extract the location name and current data from the response object
-                    const locationName = response.LocationName;
-                    const currentData = response.CurrentData;
+                    var locationName = response.LocationName;
+                    var currentData = response.CurrentData;
 
-                    // Create a new table row using a template engine
-                    const newRow = Handlebars.compile(
+                    // Create a new card using a template engine
+                    var newCard = Handlebars.compile(
                         document.querySelector("#template").innerHTML
                     )({ locationName, currentData });
 
-                    // Append the new table row to the tbody element
-                    document.querySelector("#data").innerHTML += newRow;
+                    // Append the new card to the card-container element
+                    $(".card-container").append(newCard);
                     console.timeEnd("ajax-weather-call");
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
+                },
+            });
         });
     });
 })(jQuery);
