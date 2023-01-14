@@ -2,29 +2,87 @@
 
 /**
  * @file
+ *
+ * A script for making API calls to retrieve weather information using a CVR number.
  */
 
-if (filter_input(INPUT_GET, 'search')) {
+// Constants for API URLs
+define('CVR_API_URL', 'https://cvrapi.dk/api');
+define('VEJR_API_URL', 'https://vejr.eu/api.php');
 
-    $cvr = filter_input(INPUT_GET, 'search');
-    $cvr_api_url = 'https://cvrapi.dk/api?country=dk&search=' . $cvr;
+// Error handling
+$error = null;
 
-    $options = array(
-        'http' => array(
-            'header'  => "Content-type: application/json\r\n",
-            'method' => "GET",
-            'header' => "User-Agent: 'CVR API - Kviknet-test - Yusuf Amer +45 60811091'\r\n"
-        ),
-    );
+// Input validation and sanitization
+if (!filter_input(INPUT_GET, 'search', FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^\d{8}$/")))) {
+    die("Invalid CVR number");
+}
+$cvr = filter_input(INPUT_GET, 'search', FILTER_SANITIZE_STRING);
 
-    $context = stream_context_create($options);
-    $cvr_data = file_get_contents($cvr_api_url, FALSE, $context);
-    $result = json_decode($cvr_data);
-    $city = urlencode($result->city);
+// CVR API call using cURL
+$curl = curl_init();
+curl_setopt_array($curl, array(
+    CURLOPT_URL => CVR_API_URL . '?country=dk&search=' . $cvr,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 30,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => "GET",
+    CURLOPT_HTTPHEADER => array(
+        "Content-type: application/json",
+        "User-Agent: 'CVR API - test - Amer +45 60811091'"
+    ),
+));
+$response = curl_exec($curl);
+$err = curl_error($curl);
+curl_close($curl);
 
-    $vejr_api_url = 'https://vejr.eu/api.php?location=' . $city . '&degree=C';
-    $vejr_data = file_get_contents($vejr_api_url, FALSE, $context);
-    print_r($vejr_data);
+// Check for errors
+if ($err) {
+    $error = "CVR API Error: " . $err;
 } else {
-    die("Der er ikke indtastet et CVR-nummer");
+    // Decode JSON using a library
+    $result = json_decode($response);
+
+    // Check for errors
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $error = "JSON Error: " . json_last_error_msg();
+    } else {
+        // Extract city and urlencode using a library
+        $city = urlencode($result->city);
+
+        // Check for errors
+        if (strstr($city, '+')) {
+            $city = strstr($city, '+', true);
+        }
+    }
+}
+
+// Check for errors
+if ($error) {
+    die($error);
+}
+
+// Weather API call using cURL
+$curl = curl_init();
+curl_setopt_array($curl, array(
+    CURLOPT_URL => VEJR_API_URL . '?location=' . $city . '&degree=C',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT => 30,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => "GET",
+    CURLOPT_HTTPHEADER => array(
+        "Content-type: application/json",
+        "User-Agent: 'Weather API - test - Amer +45 60811091'"
+    ),
+));
+$response = curl_exec($curl);
+$err = curl_error($curl);
+curl_close($curl);
+
+// Check for errors
+if ($err) {
+    die("Weather API Error: " . $err);
+} else {
+    // Print the response
+    print_r($response);
 }

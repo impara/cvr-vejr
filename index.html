@@ -28,26 +28,38 @@
       <form role="form" id="request">
         <div class="mb-3">
           <h2>Indtast CVR</h2>
-          <input type="number" class="form-control cvr" maxlength="8" placeholder="CVR-nummer" autofocus="" />
+          <input type="number" class="form-control cvr" maxlength="8" placeholder="CVR-nummer" autofocus=""
+            name="search" />
         </div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">
           Hent
         </button>
       </form>
+
     </div>
   </div>
 
-  <table class="table table-success table-striped table-hover">
+  <table id="data" class="table table-success table-striped table-hover">
     <thead>
       <tr>
-        <th>LocationName</th>
-        <th>temperature</th>
-        <th>skyText</th>
-        <th>humidity</th>
-        <th>windText</th>
+        <th>Location</th>
+        <th>Temperature</th>
+        <th>Sky Text</th>
+        <th>Humidity</th>
+        <th>Wind Text</th>
       </tr>
     </thead>
-    <tbody id="data">
+    <tbody>
+      <!-- Handlebars template for creating new table rows -->
+      <script id="template" type="text/x-handlebars-template">
+          <tr>
+            <td>{{locationName}}</td>
+            <td>{{currentData.temperature}}</td>
+            <td>{{currentData.skyText}}</td>
+            <td>{{currentData.humidity}}</td>
+            <td>{{currentData.windText}}</td>
+          </tr>
+        </script>
     </tbody>
   </table>
 </body>

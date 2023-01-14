@@ -1,43 +1,37 @@
 (function ($) {
-    $(document).ready(function () {
-        $(".cvr").keypress(function () {
-            if ($(this).val().length == $(this).attr("maxlength")) {
-                return false;
-            }
-        });
+    document.addEventListener("DOMContentLoaded", () => {
+        // Other code here
 
-        $("#request").on("submit", function (e) {
+        document.querySelector("#data").addEventListener("submit", (e) => {
+            // Prevent the form from being submitted
             e.preventDefault();
-            var cvr = $('input[type="number"]').val();
-            var data = { search: cvr };
+            console.time("ajax-weather-call");
+            // Serialize the form data and send it via an AJAX request
+            const data = new FormData(e.target);
+            fetch("getWeather.php", { method: "GET", body: data })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText);
+                    }
+                    return response.json();
+                })
+                .then((response) => {
+                    // Extract the location name and current data from the response object
+                    const locationName = response.LocationName;
+                    const currentData = response.CurrentData;
 
-            $.ajax({
-                url: "getWeather.php",
-                async: false,
-                type: "GET",
-                cache: false,
-                timeout: 5000,
-                dataType: "json",
-                data: data,
-                success: function (response) {
-                    $.each(response, function (key, value) {
-                        if (key == 'LocationName') {
-                            $('#data').append("<td>" + value + "</td>");
-                        } else {
-                            $('#data').append("<td>" + value.temperature + "</td>\
-                                    <td>"+ value.skyText + "</td>\
-                                    <td>"+ value.humidity + "</td>\
-                                    <td>"+ value.windText + "</td>");
-                            $('#data').wrapInner("<tr>");
-                        }
+                    // Create a new table row using a template engine
+                    const newRow = Handlebars.compile(
+                        document.querySelector("#template").innerHTML
+                    )({ locationName, currentData });
 
-                    })
-                },
-                error: function (error) {
-                    $("#data").html(error.responseText);
-                }
-            });
+                    // Append the new table row to the tbody element
+                    document.querySelector("#data").innerHTML += newRow;
+                    console.timeEnd("ajax-weather-call");
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
         });
-
     });
 })(jQuery);
