@@ -10,6 +10,16 @@
 define('CVR_API_URL', 'https://cvrapi.dk/api');
 define('VEJR_API_URL', 'https://vejr.eu/api.php');
 
+// Check if the CVR API URL is reachable
+if (!filter_var(CVR_API_URL, FILTER_VALIDATE_URL)) {
+    die('CVR API URL is not reachable');
+}
+
+// Check if the VEJR API URL is reachable
+if (!filter_var(VEJR_API_URL, FILTER_VALIDATE_URL)) {
+    die('VEJR API URL is not reachable');
+}
+
 // Error handling
 $error = null;
 
