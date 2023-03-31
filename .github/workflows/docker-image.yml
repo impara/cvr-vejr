@@ -1,0 +1,22 @@
+name: Build and Push Docker Image
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Build Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: impara/cvr-vejr:latest
+      - name: Update Argo CD
+        uses: argoproj-labs/argocd-action@v2
+        with:
+          server: https://argocd.amertech.online
+          token: ${{ secrets.ARGOCD_TOKEN }}
+          application: cvr
