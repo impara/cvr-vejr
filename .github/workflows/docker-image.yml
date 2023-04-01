@@ -14,8 +14,8 @@ jobs:
           context: .
           push: true
           tags: impara/cvr-vejr:latest
-      - name: Update Argo CD
-        uses: argoproj-labs/argocd-action@v2
+      - name: Argo CD Action
+        uses: clowdhaus/argo-cd-action@v1.9.0
         with:
           server: https://argocd.amertech.online
           token: ${{ secrets.ARGOCD_TOKEN }}
