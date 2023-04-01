@@ -23,7 +23,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: impara/cvr-vejr:latest
+          tags: impara1/cvr-vejr:latest
       - name: Argo CD Action
         uses: clowdhaus/argo-cd-action@v1.9.0
         with:
