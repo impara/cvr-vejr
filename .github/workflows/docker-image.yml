@@ -13,7 +13,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: impara/cvr-vejr:v1
+          tags: impara/cvr-vejr:latest
       - name: Update Argo CD
         uses: argoproj-labs/argocd-action@v2
         with:
