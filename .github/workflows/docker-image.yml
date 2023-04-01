@@ -25,7 +25,7 @@ jobs:
           push: true
           tags: impara1/cvr-vejr:latest
       - name: Argo CD Action
-      - uses: clowdhaus/argo-cd-action/@main
+        uses: clowdhaus/argo-cd-action/@main
         # CLI has already been downloaded in prior step, no call to GitHub API
         with:
           command: version
