@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: my-container
-          image: impara1/cvr-vejr:v1
+          image: impara1/cvr-vejr:latest
           ports:
             - containerPort: 80
