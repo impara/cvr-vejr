@@ -10,89 +10,80 @@
 define('CVR_API_URL', 'https://cvrapi.dk/api');
 define('VEJR_API_URL', 'https://vejr.eu/api.php');
 
-// Check if the CVR API URL is reachable
-if (!filter_var(CVR_API_URL, FILTER_VALIDATE_URL)) {
-    die('CVR API URL is not reachable');
+interface ApiClientInterface
+{
+    public function fetchData(string $url): string;
 }
 
-// Check if the VEJR API URL is reachable
-if (!filter_var(VEJR_API_URL, FILTER_VALIDATE_URL)) {
-    die('VEJR API URL is not reachable');
-}
-
-// Error handling
-$error = null;
-
-// Input validation and sanitization
-if (!filter_input(INPUT_GET, 'search', FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^\d{8}$/")))) {
-    die("Invalid CVR number");
-}
-$cvr = filter_input(INPUT_GET, 'search', FILTER_SANITIZE_STRING);
-
-// CVR API call using cURL
-$curl = curl_init();
-curl_setopt_array($curl, array(
-    CURLOPT_URL => CVR_API_URL . '?country=dk&search=' . $cvr,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => "GET",
-    CURLOPT_HTTPHEADER => array(
-        "Content-type: application/json",
-        "User-Agent: 'CVR API - test - Amer +45 60811091'"
-    ),
-));
-$response = curl_exec($curl);
-$err = curl_error($curl);
-curl_close($curl);
-
-// Check for errors
-if ($err) {
-    $error = "CVR API Error: " . $err;
-} else {
-    // Decode JSON using a library
-    $result = json_decode($response);
-
-    // Check for errors
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        $error = "JSON Error: " . json_last_error_msg();
-    } else {
-        // Extract city and urlencode using a library
-        $city = urlencode($result->city);
-
-        // Check for errors
-        if (strstr($city, '+')) {
-            $city = strstr($city, '+', true);
-        }
+class CurlApiClient implements ApiClientInterface
+{
+    public function fetchData(string $url): string
+    {
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "GET",
+            CURLOPT_HTTPHEADER => array(
+                "Content-type: application/json",
+                "User-Agent: 'CVR API - test - Amer +45 60811091'"
+            ),
+        ));
+        $response = curl_exec($curl);
+        curl_close($curl);
+        return $response;
     }
 }
 
-// Check for errors
-if ($error) {
-    die($error);
+class CvRService
+{
+    private $apiClient;
+
+    public function __construct(ApiClientInterface $apiClient)
+    {
+        $this->apiClient = $apiClient;
+    }
+
+    public function getCityByCvR(string $cvr): string
+    {
+        $url = CVR_API_URL . '?country=dk&search=' . $cvr;
+        $response = $this->apiClient->fetchData($url);
+        $result = json_decode($response);
+
+        // Check if the 'city' property exists before accessing it
+        return isset($result->city) ? $result->city : '';
+    }
 }
 
-// Weather API call using cURL
-$curl = curl_init();
-curl_setopt_array($curl, array(
-    CURLOPT_URL => VEJR_API_URL . '?location=' . $city . '&degree=C',
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => "GET",
-    CURLOPT_HTTPHEADER => array(
-        "Content-type: application/json",
-        "User-Agent: 'Weather API - test - Amer +45 60811091'"
-    ),
-));
-$response = curl_exec($curl);
-$err = curl_error($curl);
-curl_close($curl);
+class WeatherService
+{
+    private $apiClient;
 
-// Check for errors
-if ($err) {
-    die("Weather API Error: " . $err);
-} else {
-    // Print the response
-    print_r($response);
+    public function __construct(ApiClientInterface $apiClient)
+    {
+        $this->apiClient = $apiClient;
+    }
+
+    public function getWeatherByCity(string $city): string
+    {
+        $url = VEJR_API_URL . '?location=' . $city . '&degree=C';
+        return $this->apiClient->fetchData($url);
+    }
 }
+
+// Usage
+
+$cvr = filter_input(INPUT_GET, 'search', FILTER_SANITIZE_NUMBER_INT);
+if (!filter_input(INPUT_GET, 'search', FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^\d{8}$/")))) {
+    die("Invalid CVR number");
+}
+
+$curlClient = new CurlApiClient();
+$cvrService = new CvRService($curlClient);
+$weatherService = new WeatherService($curlClient);
+
+$city = $cvrService->getCityByCvR($cvr);
+$weatherData = $weatherService->getWeatherByCity(urlencode($city));
+print_r($weatherData);
