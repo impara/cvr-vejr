@@ -31,7 +31,13 @@ class CurlApiClient implements ApiClientInterface
                 "User-Agent: 'CVR API - test - Amer +45 60811091'"
             ),
         ));
+
         $response = curl_exec($curl);
+
+        if ($response === false) {
+            throw new Exception('Curl error: ' . curl_error($curl));
+        }
+
         curl_close($curl);
         return $response;
     }
@@ -48,12 +54,17 @@ class CvRService
 
     public function getCityByCvR(string $cvr): string
     {
-        $url = CVR_API_URL . '?country=dk&search=' . $cvr;
-        $response = $this->apiClient->fetchData($url);
-        $result = json_decode($response);
+        try {
+            $url = CVR_API_URL . '?country=dk&search=' . $cvr;
+            $response = $this->apiClient->fetchData($url);
+            $result = json_decode($response);
 
-        // Check if the 'city' property exists before accessing it
-        return isset($result->city) ? $result->city : '';
+            // Check if the 'city' property exists before accessing it
+            return isset($result->city) ? $result->city : '';
+        } catch (Exception $e) {
+            // Handle exception
+            return 'City not found for CVR number: ' . $cvr;
+        }
     }
 }
 
@@ -68,8 +79,13 @@ class WeatherService
 
     public function getWeatherByCity(string $city): string
     {
-        $url = VEJR_API_URL . '?location=' . $city . '&degree=C';
-        return $this->apiClient->fetchData($url);
+        try {
+            $url = VEJR_API_URL . '?location=' . $city . '&degree=C';
+            return $this->apiClient->fetchData($url);
+        } catch (Exception $e) {
+            // Handle exception
+            return 'Weather data not found for city: ' . $city;
+        }
     }
 }
 
